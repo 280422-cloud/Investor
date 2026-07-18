@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Startup {
+  id                 String     @id @default(cuid())
+  rawDocText         String
+  name               String
+  oneLiner           String
+  sector             String
+  subVertical        String
+  stage              String
+  roundSizeTarget    Float?
+  checkSizeSoughtMin Float?
+  checkSizeSoughtMax Float?
+  hqLocation         String
+  teamSummary        String
+  tractionSummary    String
+  targetGeography    String
+  createdAt          DateTime   @default(now())
+  investors          Investor[]
+}
+
+model Investor {
+  id             String            @id @default(cuid())
+  startupId      String
+  startup        Startup           @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  apolloPersonId String
+  name           String
+  title          String
+  firmName       String
+  firmWebsite    String?
+  linkedinUrl    String?
+  apolloRaw      String
+  isRealInvestor Boolean           @default(true)
+  dropReason     String?
+  createdAt      DateTime          @default(now())
+  research       InvestorResearch?
+  score          InvestorScore?
+  emailReveal    EmailReveal?
+
+  @@index([startupId])
+  @@index([apolloPersonId])
+}
+
+model InvestorResearch {
+  id               String   @id @default(cuid())
+  investorId       String   @unique
+  investor         Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  firecrawlContent String?
+  llmRaw           String?
+  createdAt        DateTime @default(now())
+}
+
+model InvestorScore {
+  id            String   @id @default(cuid())
+  investorId    String   @unique
+  investor      Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  sectorFit     Int
+  expertise     Int
+  stageFit      Int
+  checkMatch    Int
+  attainability Int
+  credibility   Int
+  geography     Int
+  rationale     String
+  createdAt     DateTime @default(now())
+}
+
+model EmailReveal {
+  id          String    @id @default(cuid())
+  investorId  String    @unique
+  investor    Investor  @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  email       String?
+  revealedAt  DateTime?
+  creditSpent Boolean   @default(false)
+}
